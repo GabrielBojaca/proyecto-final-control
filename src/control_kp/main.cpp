@@ -1,10 +1,11 @@
 #include <Arduino.h>
 #include "definitions.h"
 #include <Wire.h>
+static void controlTask(void *pvParameters);
 
-
-// tiempo de muestreo dejar en 25ms no cambiar
+// tiempo de muestreo dejar en 25ms
 float h = 0.025;
+
 
 
 // offset de calibracion para detectar la distancia en positivo con 0 en el 
@@ -16,28 +17,22 @@ float calibration = 100;
 float umax = 12;
 float umin = 0;
 
+// variables del lazo de control
+float reference = 50;
+float y;
+float u;
+float usat;
+float e;
+float kp = 0.01; //0.04
 
-// variables de identificación con histeresis
-float reference = 50; //poner en la mitad del tubo
-float y; // distancia del objeto
-float u; //accion de control
+// valor de equilibrio de la señal de control
+float ueq = 6.325;
 
 
-// valores del lazo de histeresis
-float ueq = 6.305; // control para el equilibrio
-float eh = 2.25;  // valor en centimetros del error de histeresis
-float ud = 0.1;  // valor en voltios del cambio en la señal de control
-
-// valores de encendido y apagado de la señal de control
-float uon = ueq + ud;
-float uoff = ueq - ud; 
-
-static void controlTask(void *pvParameters);
 
 
 void setup() {
-    // iniciamos el sensor
-    pinMode(PIN_PWM, OUTPUT);  
+    // iniciamos el sensor  
     Wire.begin();
     while(!setupSensor()){
       vTaskDelay(1000);
@@ -61,7 +56,7 @@ void setup() {
 
 
 /***************************************************************************
-*               CONTROL CON HISTERESIS PARA IDENTIFICACION
+*                CONTROL PROPORCIONAL DEL LEVITADOR
 ***************************************************************************/ 
 
 
@@ -69,7 +64,7 @@ static void controlTask(void *pvParameters) {
 
     // Aqui configuro cada cuanto se repite la tarea
     const TickType_t taskInterval = 1000*h;  // repetimos la tarea cada tiempo de muestreo en milisegundos = 1000*0.025= 25ms
-    uint32_t n = 0;
+    
     // prototipo de una tarea repetitiva   
     for (;;) {
        TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -77,29 +72,14 @@ static void controlTask(void *pvParameters) {
        // distancia en centimetros       
        y = calibration - (float) sensor.readRangeContinuousMillimeters()/10 ; 
        
-      // control con histeresis
-
-      if (y <  reference - eh) {
-          u = uon; 
-      } else if ((y <  reference + eh) & (u==uon)) {
-          u = uon; 
-      } else if ((y >  reference- eh) & (u==uoff)) {
-          u = uoff;
-      }else if (y >  reference + eh){
-          u = uoff;
-      }
-
-       voltsToFan(u);
-       //voltsToFan((6.25+6.5)/2);
-      
-      // imprimimos tambien el tiempo
-      float time = n*h;
-      
-      // vamos a imprimir valores del experimento hasta 120 segundos para salvarlo.
-      if (time <= 120){
-         printf("%0.3f, %0.3f, %0.2f\n", time, u, y);
-         n+=1;
-       }
+       // control proporcional
+       e = reference - y;
+       u = kp*e + ueq;
+       
+       // control proporcional
+       usat = constrain(u, umin, umax);
+       voltsToFan(usat);
+       printf("%0.2f, %0.2f, %0.3f\n", reference, y, movingAverage(usat));
        
        // la tarea es crítica entonces esperamos exactamente taskInterval ms antes de activarla nuevamente
        vTaskDelayUntil(&xLastWakeTime, taskInterval);     
@@ -107,6 +87,8 @@ static void controlTask(void *pvParameters) {
     }
 
 }
+
+
 
 
 
