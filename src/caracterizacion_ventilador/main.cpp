@@ -96,7 +96,7 @@ static void controlTask(void *pvParameters) {
       float time = n*h;
       
       // vamos a imprimir valores del experimento hasta 120 segundos para salvarlo.
-      if (time <= 120){
+      if (time <= 240){
          printf("%0.3f, %0.3f, %0.2f\n", time, u, y);
          n+=1;
        }
