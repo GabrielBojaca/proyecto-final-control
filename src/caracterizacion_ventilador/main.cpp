@@ -90,8 +90,6 @@ static void controlTask(void *pvParameters) {
       }
 
        voltsToFan(u);
-       //voltsToFan((6.25+6.5)/2);
-      
       // imprimimos tambien el tiempo
       float time = n*h;
       
