@@ -23,10 +23,10 @@ float y;
 float u;
 float usat;
 float e;
-float kp = 0.01; //0.04
+float kp = 0.01;//0.01; //0.04
 
 // valor de equilibrio de la señal de control
-float ueq = 6.325;
+float ueq = 5.75;//6.325;
 
 
 

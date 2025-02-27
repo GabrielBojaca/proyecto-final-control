@@ -48,7 +48,7 @@ void voltsToFan(float volts){
 
 
 float movingAverage(float newValue) {
-    const int filterSize = 20;
+    const int filterSize = 20; //Original de 20
     static float filter_values[filterSize] = {0.0};  // Array to store the last 'FILTER_SIZE' values
     static int index = 0;  // Current index in the array
     static float sum = 0.0;  // Sum of the current values in the array

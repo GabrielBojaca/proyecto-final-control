@@ -24,8 +24,8 @@ float u; //accion de control
 
 
 // valores del lazo de histeresis
-float ueq = 6.305; // control para el equilibrio
-float eh = 2.25;  // valor en centimetros del error de histeresis
+float ueq = 5.9;//6.305; // control pa.ra el equilibrio
+float eh = 1.1;//2.25;  // valor en centimetros del error de histeresis
 float ud = 0.1;  // valor en voltios del cambio en la señal de control
 
 // valores de encendido y apagado de la señal de control
@@ -95,6 +95,7 @@ static void controlTask(void *pvParameters) {
       
       // vamos a imprimir valores del experimento hasta 120 segundos para salvarlo.
       if (time <= 240){
+         //printf(">c:100,d:0,tiempo:%0.3f,u:%0.3f,y:%0.2f\r\n", time, u, y);
          printf("%0.3f, %0.3f, %0.2f\n", time, u, y);
          n+=1;
        }
