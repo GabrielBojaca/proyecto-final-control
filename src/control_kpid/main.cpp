@@ -15,7 +15,7 @@ float calibration = 100;
 
 
 //limites del actuador
-float umax = 8.;
+float umax = 9;//8.;
 float umin = 5;
 
 // variables del lazo de control
@@ -24,9 +24,23 @@ float y;
 float u;
 float usat;
 float e;
+
+float b = 80.0;
+float L = 0.574;
+float tau1 = 0.4328;
+//float kp = (0.37 / (b * L)) + (0.02 * tau1 / (b *L*L));
+//float ki = (0.03 / (b * (L*L))) + (0.0012 * tau1 / (b*L*L*L));
+//float kd = (0.16 / b) + (0.28 * tau1 / (b * L));
+
+float kp = 0.0066371;
+float ki = 0.00060231;
+float kd = 0.0048887;
+
+/*
 float kp = 0.01;//0.01;//0.01; //0.04
 float ki = 0.01;//0.0005;
 float kd = 0.01;//0.005;
+*/
 float deadzone = 0;
 
 boolean reset_int = 0;
@@ -158,7 +172,7 @@ static void controlPidTask(void *pvParameters) {
             I = I + bi * e + br * (usat - u);
         } 
         if(reset_int){
-            I = 0;
+            I = I;
             reset_int = false;
         }
         // updating output

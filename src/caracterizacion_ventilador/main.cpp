@@ -24,9 +24,9 @@ float u; //accion de control
 
 
 // valores del lazo de histeresis
-float ueq = 5.9;//6.305; // control pa.ra el equilibrio
-float eh = 1.1;//2.25;  // valor en centimetros del error de histeresis
-float ud = 0.1;  // valor en voltios del cambio en la señal de control
+float ueq = 6;//6.305; // control pa.ra el equilibrio
+float eh = 10;//2.25;  // valor en centimetros del error de histeresis
+float ud = 0.3;  // valor en voltios del cambio en la señal de control
 
 // valores de encendido y apagado de la señal de control
 float uon = ueq + ud;
