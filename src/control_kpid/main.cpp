@@ -15,7 +15,7 @@ float calibration = 100;
 
 
 //limites del actuador
-float umax = 9;//8.;
+float umax = 8;//8.;
 float umin = 5;
 
 // variables del lazo de control
@@ -25,22 +25,33 @@ float u;
 float usat;
 float e;
 
-float b = 80.0;
-float L = 0.574;
-float tau1 = 0.4328;
-//float kp = (0.37 / (b * L)) + (0.02 * tau1 / (b *L*L));
-//float ki = (0.03 / (b * (L*L))) + (0.0012 * tau1 / (b*L*L*L));
-//float kd = (0.16 / b) + (0.28 * tau1 / (b * L));
+/* Segundo controlador 43 segundos sin sobrepico
+float b = 96.82;//80.0;
+float L = 0.71;//
+float tau1 = 0.96;
+*/
 
-float kp = 0.0066371;
-float ki = 0.00060231;
-float kd = 0.0048887;
+ //Primer controlador 
+// 20 segundos 
 
 /*
-float kp = 0.01;//0.01;//0.01; //0.04
-float ki = 0.01;//0.0005;
-float kd = 0.01;//0.005;
+float b = 82.4;
+float L = 0.4282;
+float tau1 = 0.6777;
 */
+
+
+//28
+float b = 80;
+float L = 0.5574;
+float tau1 = 0.4328;
+
+
+float kp = (0.37 / (b * L)) + (0.02 * tau1 / (b *L*L));
+float ki = (0.03 / (b * (L*L))) + (0.0012 * tau1 / (b*L*L*L));
+float kd = (0.16 / b) + (0.28 * tau1 / (b * L));
+
+
 float deadzone = 0;
 
 boolean reset_int = 0;
@@ -140,10 +151,12 @@ static void controlPidTask(void *pvParameters) {
     float v;
 
 
-    float beta = 0.7;//0.7;
+    float beta = 1;//0.7;
     float N = 5;
+    uint32_t n = 0;
     for (;;) {
         TickType_t xLastWakeTime = xTaskGetTickCount();
+
         // at start we reset the integral action and the state variables
         // when receiving a new command
         reference = reference;
@@ -166,17 +179,20 @@ static void controlPidTask(void *pvParameters) {
         //saturated control signal
         usat =  constrain(u, umin, umax);
         voltsToFan((usat));
-        printf("ref = %0.2f y =  %0.2f usat =  %0.3f P = %0.2f I = %0.2f D = %0.2f\n", reference, y, movingAverage(usat),P,I,D);
+        // imprimimos tambien el tiempo
+        float time = n*h;
+        printf("temp = %0.2f ref = %0.2f y =  %0.2f usat =  %0.3f P = %0.2f I = %0.2f D = %0.2f\n",time , reference, y, movingAverage(usat),P,I,D);
         // updating integral action
         if (ki!= 0) {
             I = I + bi * e + br * (usat - u);
         } 
         if(reset_int){
-            I = I;
+            I = 0;
             reset_int = false;
         }
         // updating output
         y_ant = y;
+        n+=1;
         //The task is suspended while awaiting a new sampling time
         vTaskDelayUntil(&xLastWakeTime, taskPeriod);    
         
@@ -199,8 +215,9 @@ static void serialTask(void *pvParameters) {
                 float newRef = input.toFloat(); 
                 if (newRef >= 0 && newRef <= 100) { 
                     reference = newRef;
+                } else {
                     reset_int = true;
-                } else {}
+                }
             }
         }
         vTaskDelay(100);
